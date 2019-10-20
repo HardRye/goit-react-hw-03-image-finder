@@ -1,37 +1,29 @@
 import React, { Component } from 'react';
-import authKey from '../../helpers/authKey';
+import fetchImagesFunction from '../../helpers/fetchImagesFunction';
+import imagesMapper from '../../helpers/imagesMapper';
 import SearchForm from './SearchForm/SearchForm';
 import Gallery from './Gallery/Gallery';
+import Modal from './Modal/Modal';
 
 class ImageFinder extends Component {
   state = {
     searchQuery: '',
     pageNumber: 1,
     photos: [],
+    largeImageURL: '',
+    error: null,
   };
 
   handleFormSubmit = input => {
-    fetch(
-      `https://pixabay.com/api/?image_type=photo&orientation=horizontal&q=${input}&page=1&per_page=12&key=${authKey}`,
-    )
-      .then(result => result.json())
-      .then(data =>
+    fetchImagesFunction(input, 1)
+      .then(({ data }) =>
         this.setState({
           pageNumber: 1,
           searchQuery: input,
-          photos: data.hits.map(el => ({
-            id: el.id,
-            webformatURL: el.webformatURL,
-            largeImageURL: el.largeImageURL,
-            likes: el.likes,
-            views: el.views,
-            comments: el.comments,
-            downloads: el.downloads,
-            tags: el.tags,
-          })),
+          photos: imagesMapper(data.hits),
         }),
       )
-      .catch(error => console.log('error', error));
+      .catch(error => this.setState({ error }));
   };
 
   handleLoadMoreButton = () => {
@@ -41,46 +33,51 @@ class ImageFinder extends Component {
       }),
       async () => {
         const { searchQuery, pageNumber } = this.state;
-        fetch(
-          `https://pixabay.com/api/?image_type=photo&orientation=horizontal&q=${searchQuery}&page=${pageNumber}&per_page=12&key=${authKey}`,
-        )
-          .then(result => result.json())
-          .then(data =>
+        await fetchImagesFunction(searchQuery, pageNumber)
+          .then(({ data }) =>
             this.setState(prevState => ({
-              photos: [
-                ...prevState.photos,
-                ...data.hits.map(el => ({
-                  id: el.id,
-                  webformatURL: el.webformatURL,
-                  largeImageURL: el.largeImageURL,
-                  likes: el.likes,
-                  views: el.views,
-                  comments: el.comments,
-                  downloads: el.downloads,
-                  tags: el.tags,
-                })),
-              ],
+              photos: [...prevState.photos, ...imagesMapper(data.hits)],
             })),
           )
-          .catch(error => console.log('error', error));
+          .catch(error => this.setState({ error }));
+        window.scrollTo({
+          top: window.scrollY + window.innerHeight,
+          behavior: 'smooth',
+        });
       },
     );
   };
 
+  handleLargeImage = ({ target }) => {
+    const { photos } = this.state;
+    const { id } = target.dataset;
+    const { largeImageURL } = photos.find(photo => photo.id === Number(id));
+    this.setState({ largeImageURL });
+  };
+
+  handleModalClose = () => {
+    this.setState({ largeImageURL: '' });
+  };
+
   render() {
-    const { photos, searchQuery } = this.state;
+    const { photos, largeImageURL, error } = this.state;
     return (
       <>
-        <SearchForm
-          searchQuery={searchQuery}
-          handleFormSubmit={this.handleFormSubmit}
-        />
+        <SearchForm handleFormSubmit={this.handleFormSubmit} />
         {photos.length > 0 && (
           <Gallery
             photos={photos}
             handleLoadMoreButton={this.handleLoadMoreButton}
+            handleLargeImage={this.handleLargeImage}
           />
         )}
+        {largeImageURL.length > 0 && (
+          <Modal
+            largeImageURL={largeImageURL}
+            handleModalClose={this.handleModalClose}
+          />
+        )}
+        {error && <p>Whoops, something went wrong: {error.message}</p>}
       </>
     );
   }

@@ -9,9 +9,7 @@ class SearchForm extends Component {
   };
 
   static propTypes = {
-    searchQuery: PropTypes.string.isRequired,
     handleFormSubmit: PropTypes.func.isRequired,
-    handleFormInput: PropTypes.func.isRequired,
   };
 
   handleSubmit = e => {
@@ -23,8 +21,6 @@ class SearchForm extends Component {
   };
 
   handleInput = ({ target }) => {
-    // const { handleFormInput } = this.props;
-    // handleFormInput(event);
     this.setState({ input: target.value });
   };
 
