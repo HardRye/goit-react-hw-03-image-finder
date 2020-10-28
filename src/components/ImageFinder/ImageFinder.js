@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import fetchImagesFunction from '../../helpers/fetchImagesFunction';
 import imagesMapper from '../../helpers/imagesMapper';
-import SearchForm from './SearchForm/SearchForm';
-import Gallery from './Gallery/Gallery';
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
+import Button from './Button/Button';
 
 class ImageFinder extends Component {
   state = {
@@ -40,17 +41,18 @@ class ImageFinder extends Component {
             })),
           )
           .catch(error => this.setState({ error }));
+
         window.scrollTo({
-          top: window.scrollY + window.innerHeight,
+          top: document.documentElement.scrollHeight,
           behavior: 'smooth',
         });
       },
     );
   };
 
-  handleLargeImage = ({ target }) => {
+  handleLargeImage = ({ currentTarget }) => {
     const { photos } = this.state;
-    const { id } = target.dataset;
+    const { id } = currentTarget.dataset;
     const { largeImageURL } = photos.find(photo => photo.id === Number(id));
     this.setState({ largeImageURL });
   };
@@ -63,13 +65,16 @@ class ImageFinder extends Component {
     const { photos, largeImageURL, error } = this.state;
     return (
       <>
-        <SearchForm handleFormSubmit={this.handleFormSubmit} />
+        <Searchbar handleFormSubmit={this.handleFormSubmit} />
         {photos.length > 0 && (
-          <Gallery
-            photos={photos}
-            handleLoadMoreButton={this.handleLoadMoreButton}
-            handleLargeImage={this.handleLargeImage}
-          />
+          <>
+            <ImageGallery
+              photos={photos}
+              handleLargeImage={this.handleLargeImage}
+            />
+
+            <Button handleLoadMoreButton={this.handleLoadMoreButton} />
+          </>
         )}
         {largeImageURL.length > 0 && (
           <Modal
