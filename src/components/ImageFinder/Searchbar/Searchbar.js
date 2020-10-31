@@ -37,6 +37,7 @@ class Searchbar extends Component {
             type="text"
             autoComplete="off"
             placeholder="Search images and photos"
+            value={input}
             className={styles.searchFormInput}
             onChange={this.handleInput}
           />
