@@ -61,10 +61,5 @@ class Modal extends Component {
     );
   }
 }
-Modal.propTypes = {
-  // bla: PropTypes.string,
-};
-Modal.defaultProps = {
-  // bla: 'test',
-};
+
 export default Modal;
